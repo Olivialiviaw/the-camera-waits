@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#070707">
+  <title>The Camera Waits — Animals Under Observation</title>
+  <meta name="description" content="An interactive camera-trap archive about looking, recording, and being seen.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23070707'/%3E%3Ccircle cx='32' cy='32' r='15' fill='none' stroke='%23ef483e' stroke-width='4'/%3E%3Ccircle cx='32' cy='32' r='4' fill='%23ef483e'/%3E%3C/svg%3E">
+  <style>
+    :root{--paper:#e9e5dc;--red:#ef483e;--muted:#aaa69e;--line:rgba(233,229,220,.3);--x:50%;--y:50%}
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;background:#070707;color:var(--paper)}
+    body{font-family:"Helvetica Neue",Arial,sans-serif;overflow:hidden}
+    button{font:inherit;color:inherit}
+    .shell{height:100svh;min-height:560px;display:grid;grid-template-rows:auto 1fr auto;padding:18px 22px 16px;position:relative;background:#070707}
+    header,.foot{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:8;text-transform:uppercase;letter-spacing:.12em;font-size:10px}
+    .brand{display:flex;align-items:baseline;gap:16px}.brand strong{font-family:Georgia,serif;font-size:18px;letter-spacing:.08em;text-transform:uppercase;font-weight:400}.brand span{color:var(--muted)}
+    .live{display:flex;align-items:center;gap:9px}.dot{width:7px;height:7px;border-radius:50%;background:var(--red);box-shadow:0 0 13px var(--red);animation:pulse 1.7s infinite}
+    @keyframes pulse{50%{opacity:.35}}
+    main{min-height:0;padding:15px 0;position:relative}
+    .viewport{width:100%;height:100%;position:relative;border:1px solid var(--line);overflow:hidden;background:#0b0d0b;cursor:crosshair;text-align:left;padding:0}
+    .image{position:absolute;inset:0;background-position:center;background-size:cover;filter:grayscale(100%) contrast(1.2) brightness(.62);transform:scale(1.012);transition:background-image .7s ease,filter .7s ease,transform 1.2s ease}
+    .viewport:hover .image{transform:scale(1.035)}
+    .noise{position:absolute;inset:0;pointer-events:none;opacity:.11;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.7'/%3E%3C/svg%3E")}
+    .flash{position:absolute;inset:0;z-index:7;background:#fff;opacity:0;pointer-events:none}.flash.fire{animation:flash .45s ease-out}@keyframes flash{0%{opacity:.9}100%{opacity:0}}
+    .scan{position:absolute;left:var(--x);top:var(--y);width:172px;height:124px;transform:translate(-50%,-50%);border:1px solid rgba(233,229,220,.85);transition:width .5s,height .5s,border-color .5s}
+    .scan:before,.scan:after{content:"";position:absolute;background:var(--paper);opacity:.85}.scan:before{width:16px;height:1px;left:50%;top:50%;transform:translate(-50%,-50%)}.scan:after{height:16px;width:1px;left:50%;top:50%;transform:translate(-50%,-50%)}
+    .corners{position:absolute;inset:14px;border:solid var(--paper);border-width:1px 0 0 1px;width:20px;height:20px;opacity:.7}.corners.r{left:auto;right:14px;transform:rotate(90deg)}
+    .data{position:absolute;z-index:3;left:22px;bottom:22px;width:min(390px,70%);display:grid;grid-template-columns:108px 1fr;gap:7px 18px;font:10px/1.2 "Courier New",monospace;text-transform:uppercase;letter-spacing:.07em;text-shadow:0 1px 3px #000}
+    .data dt{color:#aaa69e}.data dd{margin:0}.status{color:var(--red)}
+    .message{position:absolute;z-index:4;right:28px;top:25px;text-align:right;max-width:420px}.message h1{margin:0;font:400 clamp(26px,4vw,58px)/.95 Georgia,serif;letter-spacing:-.035em}.message p{margin:12px 0 0;font:10px/1.4 "Courier New",monospace;letter-spacing:.08em;text-transform:uppercase;color:#d0ccc4}
+    .coord{position:absolute;z-index:4;right:22px;bottom:22px;font:10px "Courier New",monospace;letter-spacing:.08em;color:var(--muted)}
+    .counter{font:10px "Courier New",monospace}.instruction{display:flex;gap:12px;align-items:center}.instruction i{width:28px;height:1px;background:var(--paper);display:block}
+    .archive-toggle{background:none;border:0;padding:0;cursor:pointer;text-transform:uppercase;letter-spacing:.12em;font-size:10px}.archive-toggle:hover{color:var(--red)}
+    .archive{position:absolute;z-index:12;top:0;right:0;height:100%;width:min(560px,94vw);background:#0a0a0a;border-left:1px solid var(--line);padding:28px;transform:translateX(102%);transition:transform .4s ease;display:flex;flex-direction:column;overflow:auto}.archive.open{transform:none}.archive-head{display:flex;justify-content:space-between;align-items:center}.archive h2{font:400 32px Georgia,serif;margin:0;text-transform:uppercase;letter-spacing:.04em}.archive-intro{font:12px/1.5 "Courier New",monospace;color:var(--muted);max-width:430px;margin:16px 0 0;text-transform:uppercase}.close{border:0;background:none;font-size:24px;cursor:pointer}.records{margin-top:28px;border-top:1px solid var(--line)}.record{width:100%;display:grid;grid-template-columns:38px 92px 1fr;gap:14px;padding:14px 0;border:0;border-bottom:1px solid var(--line);background:none;text-align:left;cursor:pointer;font:11px "Courier New",monospace;text-transform:uppercase}.record:hover,.record:focus-visible{color:var(--red)}.record img{width:92px;height:62px;object-fit:cover;filter:grayscale(1) contrast(1.2)}.record-copy{display:flex;flex-direction:column;gap:5px}.record-copy b{font-size:12px}.record-copy em{font-style:normal;color:var(--muted);font-size:10px}.record-copy small{font-size:10px;line-height:1.35;color:#cfcbc3;text-transform:none}.archive-note{margin-top:auto;padding-top:26px;font:italic 18px/1.35 Georgia,serif;color:#d4d0c8}
+    body.stage-2 .scan{width:250px;height:180px;border-color:var(--red)}
+    body.stage-1 .scan{animation:track 2.4s ease-in-out infinite alternate}@keyframes track{to{transform:translate(calc(-50% + 22px),calc(-50% - 13px))}}
+    body.stage-2 .scan{border-radius:50%;width:210px;height:210px;box-shadow:0 0 0 100vmax rgba(0,0,0,.28)}
+    body.stage-3 .scan{width:calc(100% - 30px);height:calc(100% - 30px);border-color:var(--red)}
+    body.stage-3 .image{filter:grayscale(100%) contrast(1.35) brightness(.5)}
+    body.stage-3 .message h1{color:var(--red)}
+    @media(max-width:680px){.shell{padding:14px}.brand span,.time{display:none}main{padding:11px 0}.message{right:18px;top:18px;left:18px}.message p{max-width:260px;margin-left:auto}.data{left:16px;bottom:16px;grid-template-columns:82px 1fr;width:calc(100% - 32px)}.scan{width:118px;height:88px}.foot .instruction span{display:none}}
+    @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+  </style>
+</head>
+<body class="stage-0">
+  <div class="shell">
+    <header>
+      <div class="brand"><strong>THE CAMERA WAITS</strong><span>ANIMALS UNDER OBSERVATION</span></div>
+      <div class="live"><span class="dot"></span><span>REC</span><span class="time" id="clock">00:00:00</span></div>
+    </header>
+    <main>
+      <button class="viewport" id="viewport" aria-label="Advance to the next observation">
+        <div class="image" id="image"></div><div class="noise"></div><div class="flash" id="flash"></div><i class="corners"></i><i class="corners r"></i><div class="scan"></div>
+        <section class="message"><h1 id="title">THE FOREST IS EMPTY.</h1><p id="copy">Move through the frame. The camera is already waiting.</p></section>
+        <dl class="data">
+          <dt>Camera</dt><dd>TCW—01 / FIELD UNIT</dd>
+          <dt>Location</dt><dd>UNKNOWN FOREST</dd>
+          <dt>Classification</dt><dd id="species">NO SUBJECT</dd>
+          <dt>Confidence</dt><dd id="confidence">—</dd>
+          <dt>Status</dt><dd class="status" id="status">WAITING</dd>
+        </dl>
+        <div class="coord" id="coord">X 050 / Y 050</div>
+      </button>
+    </main>
+    <div class="foot">
+      <div class="counter"><span id="count">01</span> / 04</div>
+      <div class="instruction"><i></i><span>Move to search · click to record</span></div>
+      <button class="archive-toggle" id="archiveToggle">Open archive</button>
+    </div>
+    <aside class="archive" id="archive" aria-hidden="true">
+      <div class="archive-head"><h2>FIELD RECORDS</h2><button class="close" id="close" aria-label="Close archive">×</button></div>
+      <p class="archive-intro">Four encounters recorded by an unattended camera. Select a record to return to its captured moment.</p>
+      <div class="records">
+        <button class="record" data-stage="0"><b>01</b><img src="forest.jpg" alt="Empty forest camera-trap record"><span class="record-copy"><b>WAITING FIELD</b><em>00:00:00 · NO SUBJECT</em><small>The apparatus watches before anything arrives.</small></span></button>
+        <button class="record" data-stage="1"><b>02</b><img src="deer.jpg" alt="Deer passing through a forest"><span class="record-copy"><b>PASSING BODY</b><em>00:16:42 · DETECTED</em><small>Movement turns a living body into evidence.</small></span></button>
+        <button class="record" data-stage="2"><b>03</b><img src="owl.jpg" alt="Owl looking into a camera"><span class="record-copy"><b>RETURNED GAZE</b><em>02:31:08 · AWARE</em><small>The observed subject looks back at the machine.</small></span></button>
+        <button class="record" data-stage="3"><b>04</b><img src="bear.jpg" alt="Animal extremely close to the lens"><span class="record-copy"><b>HUMAN OBSERVER</b><em>LIVE · WATCHING</em><small>The archive changes direction and classifies its viewer.</small></span></button>
+      </div>
+      <p class="archive-note">The camera keeps the image.<br>The forest keeps the animal.</p>
+    </aside>
+  </div>
+  <script>
+    const stages=[
+      {img:'forest.jpg',title:'THE FOREST IS EMPTY.',copy:'Move through the frame. The camera is already waiting.',species:'NO SUBJECT',confidence:'—',status:'WAITING'},
+      {img:'deer.jpg',title:'SOMETHING ENTERS.',copy:'A body crosses the boundary between landscape and evidence.',species:'CERVIDAE',confidence:'64%',status:'MOVEMENT DETECTED'},
+      {img:'owl.jpg',title:'THE GAZE RETURNS.',copy:'The subject no longer behaves like an object in the archive.',species:'STRIGIFORMES',confidence:'UNSTABLE',status:'SUBJECT AWARE'},
+      {img:'bear.jpg',title:'OBSERVER DETECTED.',copy:'You came to identify the animal. The camera has identified you.',species:'HUMAN',confidence:'99.8%',status:'YOU ARE BEING WATCHED'}
+    ];
+    let current=0;const image=document.querySelector('#image');const viewport=document.querySelector('#viewport');
+    function render(withFlash=false){const s=stages[current];document.body.className=`stage-${current}`;image.style.backgroundImage=`url('${s.img}')`;document.querySelector('#title').textContent=s.title;document.querySelector('#copy').textContent=s.copy;document.querySelector('#species').textContent=s.species;document.querySelector('#confidence').textContent=s.confidence;document.querySelector('#status').textContent=s.status;document.querySelector('#count').textContent=String(current+1).padStart(2,'0');if(withFlash){const f=document.querySelector('#flash');f.classList.remove('fire');void f.offsetWidth;f.classList.add('fire')}}
+    viewport.addEventListener('pointermove',e=>{const r=viewport.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;document.documentElement.style.setProperty('--x',`${x}px`);document.documentElement.style.setProperty('--y',`${y}px`);document.querySelector('#coord').textContent=`X ${String(Math.round(x/r.width*100)).padStart(3,'0')} / Y ${String(Math.round(y/r.height*100)).padStart(3,'0')}`});
+    viewport.addEventListener('click',()=>{current=(current+1)%stages.length;render(true)});
+    const archive=document.querySelector('#archive');function setArchive(open){archive.classList.toggle('open',open);archive.setAttribute('aria-hidden',String(!open))}document.querySelector('#archiveToggle').onclick=()=>setArchive(true);document.querySelector('#close').onclick=()=>setArchive(false);document.querySelectorAll('.record').forEach(r=>r.onclick=()=>{current=Number(r.dataset.stage);render(true);setArchive(false)});document.addEventListener('keydown',e=>{if(e.key==='Escape')setArchive(false)});
+    setInterval(()=>document.querySelector('#clock').textContent=new Date().toTimeString().slice(0,8),1000);render();
+  </script>
+</body>
+</html>
